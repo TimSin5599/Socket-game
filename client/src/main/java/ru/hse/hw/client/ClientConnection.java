@@ -37,7 +37,7 @@ public class ClientConnection implements Runnable {
             writer.newLine();
             writer.flush();
 
-            while (true) {
+            while (Platform.isImplicitExit()) {
                 try {
                     String category = reader.readLine();
                     dataCategory(category);
@@ -67,6 +67,9 @@ public class ClientConnection implements Runnable {
 
     private void preparationTime() throws IOException {
         String time = reader.readLine();
+        if (time == null) {
+            return;
+        }
         Platform.runLater(() -> gameController.updatePreparationTime(time));
     }
 

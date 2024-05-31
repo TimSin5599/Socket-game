@@ -4,6 +4,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.stage.Stage;
+
+import java.util.Objects;
 
 
 public class GameController {
@@ -26,6 +29,10 @@ public class GameController {
     }
 
     public void updatePreparationTime(String time) {
-        timer.setText(time);
+        if (Objects.equals(time, "Время истекло")) {
+            timer.setVisible(false);
+        } else {
+            timer.setText(time);
+        }
     }
 }

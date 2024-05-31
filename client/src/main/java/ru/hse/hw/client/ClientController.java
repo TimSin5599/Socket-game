@@ -1,5 +1,6 @@
 package ru.hse.hw.client;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.event.ActionEvent;
@@ -86,6 +87,8 @@ public class ClientController {
         Scene sceneGame = new Scene(fxmlLoader.load(), 700, 500);
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setScene(sceneGame);
+
+        stage.setOnCloseRequest(e -> Platform.setImplicitExit(false));
 
         ClientConnection connection = new ClientConnection(serverHost.getText(), Integer.parseInt(serverPort.getText()), playersName.getText(), fxmlLoader.getController());
         Thread thread = new Thread(connection);
