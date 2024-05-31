@@ -1,12 +1,12 @@
 package ru.hse.hw.server;
 
+import ru.hse.hw.util.WordsReader;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Server implements Runnable{
+public class Server implements Runnable {
     private final ServerSocket serverSocket;
     private final int playersNumber;
     private final int sessionPreparationTime;
@@ -29,8 +29,8 @@ public class Server implements Runnable{
         int countPlayers = 0;
         Session session = null;
 
-        while (true) {
-            try {
+        try (serverSocket) {
+            while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Соединение с клиентом установлено");
                 System.out.println("Socket - " + socket);
@@ -49,9 +49,9 @@ public class Server implements Runnable{
 //                Thread thread = new Thread(connection);
 //                thread.start();
 
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

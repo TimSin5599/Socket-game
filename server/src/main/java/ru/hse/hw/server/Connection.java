@@ -8,6 +8,7 @@ public class Connection {
     private final BufferedReader reader;
     private final BufferedWriter writer;
     private final Session session;
+    private String playerName;
 
     public BufferedReader getReader() {
         return reader;
@@ -34,6 +35,19 @@ public class Connection {
         writer.flush();
     }
 
+    void setName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    String getName() {
+        return playerName;
+    }
+
+    void close() throws IOException {
+        reader.close();
+        writer.close();
+        socket.close();
+    }
     /*@Override
     public void run() {
         try (socket;
