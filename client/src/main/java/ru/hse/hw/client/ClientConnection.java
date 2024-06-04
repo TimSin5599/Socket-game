@@ -3,12 +3,10 @@ package ru.hse.hw.client;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXMLLoader;
+import org.w3c.dom.ls.LSOutput;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ClientConnection implements Runnable {
     private final String addressServer;
@@ -31,24 +29,20 @@ public class ClientConnection implements Runnable {
 
     @Override
     public void run() {
-        try (socket; reader; writer) {
+        try {
             System.out.println("Клиент установил связь с сервером");
             writer.write(playersName);
             writer.newLine();
             writer.flush();
 
             while (Platform.isImplicitExit()) {
-                try {
-                    String category = reader.readLine();
-                    dataCategory(category);
-                } catch (NumberFormatException e) {
-                    e.printStackTrace(System.err);
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                }
+                String category = reader.readLine();
+                System.out.println(category);
+                dataCategory(category);
             }
         } catch (IOException e) {
-            e.printStackTrace(System.err);
+            System.out.println("Сокет клиента закрыт");
+//            e.printStackTrace(System.err);
         }
     }
 
@@ -60,8 +54,51 @@ public class ClientConnection implements Runnable {
             case "preparationTime":
                 preparationTime();
                 break;
+            case "word":
+                showWord();
+                break;
+            case "answerOnRequest":
+                answerOnRequest();
+                break;
+            case "gameCondition":
+                gameCondition();
             default:
                 break;
+        }
+    }
+
+    private void gameCondition() {
+        try {
+            int value = Integer.parseInt(reader.readLine());
+            if (value == 1) {
+                Platform.runLater(gameController::openCharacters);
+            } else {
+                Platform.runLater(gameController::hideCharacters);
+            }
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void answerOnRequest() {
+        try {
+            int value = Integer.parseInt(reader.readLine());
+            System.out.println(value);
+            int pos = Integer.parseInt(reader.readLine());
+            System.out.println(pos);
+            Platform.runLater(() -> gameController.updateWord(value, pos));
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void showWord() {
+        try {
+            int word = Integer.parseInt(reader.readLine());
+            System.out.println(word);
+            Platform.runLater(() -> gameController.showWord(word));
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace(System.err);
         }
     }
 
@@ -76,12 +113,38 @@ public class ClientConnection implements Runnable {
     private void playersList() throws IOException {
         ObservableList<String> players = FXCollections.observableArrayList();
         int number = Integer.parseInt(reader.readLine());
-        System.out.println(number);
+//        System.out.println(number);
         for (int i = 0; i < number; i++) {
             String player = reader.readLine();
             players.add(player);
-            System.out.println(player);
+//            System.out.println(player);
         }
         Platform.runLater(() -> gameController.updatePlayers(players));
+    }
+
+    void requestOnCheckCharacter(String symbol, int pos) {
+        System.out.println(symbol);
+        if (symbol.length() < 2) {
+            try {
+                System.out.println(symbol);
+                writer.write(symbol);
+                writer.newLine();
+                writer.write(String.valueOf(pos));
+                writer.newLine();
+                writer.flush();
+            } catch (IOException | NumberFormatException e) {
+                e.printStackTrace(System.err);
+            }
+        }
+    }
+
+    void close() {
+        try {
+            socket.close();
+            reader.close();
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

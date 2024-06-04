@@ -12,7 +12,7 @@ public class ClientApplication extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ClientApplication.class.getResource("client.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 500, 400);
-        stage.setTitle("Server");
+        stage.setTitle("Client");
         stage.setScene(scene);
         stage.show();
     }

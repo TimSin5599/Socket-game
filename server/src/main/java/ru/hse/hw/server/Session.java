@@ -3,7 +3,7 @@ package ru.hse.hw.server;
 import ru.hse.hw.util.WordsReader;
 
 import java.io.*;
-import java.net.SocketException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -18,10 +18,10 @@ public class Session implements Runnable{
     private final int sessionDurationLimit;
     private final int pauseTime;
     private final int successNotificationPeriod;
-    private volatile List<String> players;
-    private List<Connection> connections;
+    private final List<Connection> connections;
     private final long time;
     private final String[] words;
+    private String word;
 
     public Session(int playersNumber, int sessionPreparationTime, int sessionDurationLimit, int pauseTime, int successNotificationPeriod) {
         this.playersNumber = playersNumber;
@@ -29,7 +29,6 @@ public class Session implements Runnable{
         this.sessionDurationLimit = sessionDurationLimit;
         this.pauseTime = pauseTime;
         this.successNotificationPeriod = successNotificationPeriod;
-        players = new ArrayList<>();
         connections = new ArrayList<>();
         time = System.currentTimeMillis();
         words = WordsReader.readWords();
@@ -37,15 +36,89 @@ public class Session implements Runnable{
 
     @Override
     public void run() {
+        try (ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor()) {
+            executorService.scheduleWithFixedDelay(this::updatePlayers, 0, 100, TimeUnit.MILLISECONDS);
+            try {
+                executorService.awaitTermination(sessionPreparationTime, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         Random random = new Random();
-        String word = words[random.nextInt(words.length)];
-        // Добавить connection и после чтения имени добавлять в players
-        // Как отправлять список игроков клиентам? (отправлять каждый раз после нового Connection, а есдли игрок вышел?)
+        word = words[random.nextInt(words.length)];
+        System.out.println(word);
+        for (Connection connection : connections) {
+            BufferedWriter writer = connection.getWriter();
+            try {
+                writer.write("word");
+                writer.newLine();
+                writer.write(String.valueOf(word.length()));
+                writer.newLine();
+                writer.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        while (true) {
+            for (Connection connection : connections) {
+                checkCharacter(connection);
+            }
+        }
     }
 
-    void addPlayer(Connection connection) {
+    private void checkCharacter(Connection connection) {
+        BufferedReader reader = connection.getReader();
+        for (Connection conn : connections) {
+            BufferedWriter writer = conn.getWriter();
+            try {
+                if (conn == connection) {
+                    writer.write("gameCondition");
+                    writer.newLine();
+                    writer.write("1");
+                    writer.newLine();
+                    writer.flush();
+                } else {
+                    writer.write("gameCondition");
+                    writer.newLine();
+                    writer.write("0");
+                    writer.newLine();
+                    writer.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+            }
+        }
+        try {
+//            reader.mark(sessionDurationLimit);
+            String value = reader.readLine();
+            int pos = Integer.parseInt(reader.readLine());
+            System.out.println(value);
+            if (value.length() == 1) {
+                char c = value.charAt(0);
+                BufferedWriter writer = connection.getWriter();
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("answerOnRequest").append("\n");
+                if (word.charAt(pos) == c) {
+                    System.out.println("Буквы равны");
+                    stringBuilder.append("1").append("\n");
+                } else {
+                    System.out.println("Буквы не совпали");
+                    stringBuilder.append("0").append("\n");
+                }
+                stringBuilder.append(pos).append("\n");
+                writer.write(stringBuilder.toString());
+                writer.flush();
+            }
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    void addPlayer(Socket socket) throws IOException {
+        Connection connection = new Connection(socket);
         connections.add(connection);
-        timerPreparationTime(connection);
         try {
             BufferedReader reader = connection.getReader();
             String player = reader.readLine();
@@ -53,44 +126,6 @@ public class Session implements Runnable{
         } catch (IOException e) {
             e.printStackTrace(System.err);
         }
-        updatePlayers();
-    }
-
-    private void timerPreparationTime(Connection connection) {
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(() -> {
-            if ((System.currentTimeMillis() - time) / 1000 < sessionPreparationTime) {
-                try {
-                    /*ListIterator<Connection> listIterator = connections.listIterator();
-                    int count = 0;
-                    while (listIterator.hasNext()) {
-                        Connection conn = listIterator.next();
-                        if (!conn.isConnected()) {
-                            listIterator.remove();
-                            ++count;
-                        }
-                    }
-                    if (count > 0) {
-                        System.out.println(count);
-                        updatePlayers();
-                    }*/
-                    updatePlayers();
-
-                    connection.preparationTime(String.valueOf(sessionPreparationTime*1000L - System.currentTimeMillis() + time));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                try (executorService) {
-                    connection.preparationTime("Время истекло");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    executorService.shutdown();
-                }
-            }
-        }, 0, 4, TimeUnit.MILLISECONDS);
-
     }
 
     private void updatePlayers() {
@@ -111,6 +146,13 @@ public class Session implements Runnable{
             try {
                 BufferedWriter writer = connection.getWriter();
                 writer.write(stringBuilder.toString());
+                writer.newLine();
+                writer.flush();
+
+                writer.write("preparationTime");
+                writer.newLine();
+                writer.write(String.valueOf((sessionPreparationTime*1000L - System.currentTimeMillis() + time)));
+                writer.newLine();
                 writer.flush();
                 System.out.println("Сервер отправил данные об игроках");
             } catch (IOException e) {

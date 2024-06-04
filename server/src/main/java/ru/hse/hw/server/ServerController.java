@@ -1,15 +1,15 @@
 package ru.hse.hw.server;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.event.ActionEvent;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,6 +38,8 @@ public class ServerController {
     public ImageView imageViewNumberCharacters;
     @FXML
     public ImageView imageViewHiddenWord;
+    @FXML
+    public Label serverCondition;
     @FXML
     private TextField PORT;
     @FXML
@@ -172,8 +174,19 @@ public class ServerController {
             if (server == null) {
                 server = new Server(Integer.parseInt(PORT.getText()), Integer.parseInt(playersNumber.getText()), Integer.parseInt(sessionPreparationTime.getText()),
                         Integer.parseInt(sessionDurationLimit.getText()), Integer.parseInt(pauseTime.getText()), Integer.parseInt(successNotificationPeriod.getText()));
+                serverCondition.setText("Сервер запущен");
                 Thread thread = new Thread(server);
                 thread.start();
+
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setOnCloseRequest((e) -> {
+                    Platform.setImplicitExit(false);
+                    thread.interrupt();
+                    if (server != null) {
+                        server.stop();
+                    }
+                    Platform.exit();
+                });
             }
         } catch (NumberFormatException e) {
             e.printStackTrace(System.err);
@@ -182,7 +195,11 @@ public class ServerController {
 
     @FXML
     protected void stopServer(ActionEvent event) {
-
+        if (server != null) {
+            server.stop();
+            server = null;
+            serverCondition.setText("Сервер остановлен");
+        }
     }
 
     @FXML

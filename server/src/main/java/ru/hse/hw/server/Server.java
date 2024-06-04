@@ -28,21 +28,22 @@ public class Server implements Runnable {
     public void run() {
         int countPlayers = 0;
         Session session = null;
+        Thread thread = null;
 
-        try (serverSocket) {
+        try {
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Соединение с клиентом установлено");
                 System.out.println("Socket - " + socket);
-                if (countPlayers < playersNumber && session != null) {
+                if (countPlayers < playersNumber && session != null && thread.isAlive()) {
                     countPlayers++;
-                    Connection connection = new Connection(socket, session);
-                    session.addPlayer(connection);
+                    session.addPlayer(socket);
                 } else {
                     countPlayers = 0;
                     session = new Session(playersNumber, sessionPreparationTime, sessionDurationLimit, pauseTime, successNotificationPeriod);
-                    Connection connection = new Connection(socket, session);
-                    session.addPlayer(connection);
+                    session.addPlayer(socket);
+                    thread = new Thread(session);
+                    thread.start();
                     countPlayers++;
                 }
 //                Connection connection = new Connection(socket);
@@ -51,9 +52,17 @@ public class Server implements Runnable {
 
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace(System.err);
+            System.out.println("Сокет сервера закрыт");
         }
     }
 
 
+    void stop() {
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+    }
 }

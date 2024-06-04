@@ -82,17 +82,30 @@ public class ClientController {
     }
 
     @FXML
-    private void startGame(javafx.event.ActionEvent event) throws IOException {
+    private void startGame(javafx.event.ActionEvent event) {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ru/hse/hw/client/game.fxml"));
-        Scene sceneGame = new Scene(fxmlLoader.load(), 700, 500);
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.setScene(sceneGame);
 
-        stage.setOnCloseRequest(e -> Platform.setImplicitExit(false));
+        try {
+            Scene sceneGame = new Scene(fxmlLoader.load(), 700, 550);
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(sceneGame);
 
-        ClientConnection connection = new ClientConnection(serverHost.getText(), Integer.parseInt(serverPort.getText()), playersName.getText(), fxmlLoader.getController());
-        Thread thread = new Thread(connection);
-        thread.start();
+            GameController gameController = fxmlLoader.getController();
+            ClientConnection connection = new ClientConnection(serverHost.getText(), Integer.parseInt(serverPort.getText()), playersName.getText(), gameController);
+            gameController.setConnection(connection);
+            Thread thread = new Thread(connection);
+            thread.start();
+
+            stage.setOnCloseRequest(e -> {
+                Platform.setImplicitExit(false);
+                thread.interrupt();
+                connection.close();
+                Platform.exit();
+            });
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+            System.err.println("Failed to connect to server or failed download the scene of game");
+        }
     }
 
     private void setImage(List<ImageView> list) {

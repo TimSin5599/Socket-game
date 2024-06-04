@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.hse.hw.server.ServerController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.hse.hw.server.ServerController">
    <children>
       <Button fx:id="startServer" layoutX="536.0" layoutY="456.0" mnemonicParsing="false" onAction="#startServer" prefHeight="30.0" prefWidth="150.0" text="Запустить сервер" />
-      <Button fx:id="stopServer" layoutX="14.0" layoutY="456.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Остановить сервер" />
+      <Button fx:id="stopServer" layoutX="14.0" layoutY="456.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Остановить сервер" onAction="#stopServer"/>
       <AnchorPane layoutX="50.0" layoutY="69.0" prefHeight="330.0" prefWidth="600.0">
          <children>
             <AnchorPane layoutX="350.0" layoutY="40.0" prefHeight="180.0" prefWidth="296.0">
@@ -74,6 +71,11 @@
       <Label layoutX="313.0" layoutY="21.0" text="Server">
          <font>
             <Font name="System Bold" size="25.0" />
+         </font>
+      </Label>
+      <Label fx:id="serverCondition" alignment="CENTER" contentDisplay="CENTER" layoutX="273.0" layoutY="458.0" text="Запустите сервер">
+         <font>
+            <Font name="System Italic" size="18.0" />
          </font>
       </Label>
    </children>
