@@ -1,14 +1,17 @@
 package ru.hse.hw.client;
 
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -82,15 +85,15 @@ public class ClientController {
     }
 
     @FXML
-    private void startGame(javafx.event.ActionEvent event) {
+    private void startGame(ActionEvent event) {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ru/hse/hw/client/game.fxml"));
-
+        GameController gameController = null;
         try {
-            Scene sceneGame = new Scene(fxmlLoader.load(), 700, 550);
+            Scene sceneGame = new Scene(fxmlLoader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(sceneGame);
 
-            GameController gameController = fxmlLoader.getController();
+            gameController = fxmlLoader.getController();
             ClientConnection connection = new ClientConnection(serverHost.getText(), Integer.parseInt(serverPort.getText()), playersName.getText(), gameController);
             gameController.setConnection(connection);
             Thread thread = new Thread(connection);
@@ -99,12 +102,18 @@ public class ClientController {
             stage.setOnCloseRequest(e -> {
                 Platform.setImplicitExit(false);
                 thread.interrupt();
-                connection.close();
                 Platform.exit();
             });
         } catch (IOException e) {
-            e.printStackTrace(System.err);
             System.err.println("Failed to connect to server or failed download the scene of game");
+            if (gameController != null) {
+                ObservableList<Node> list = gameController.getFlowPane().getChildren();
+                list.clear();
+                Label label = new Label("Не удалось подключится к серверу. Попробуйте повторить попытку позже.");
+                label.setStyle("-fx-font-size: 18");
+                list.add(label);
+                gameController.buttonExit.setVisible(true);
+            }
         }
     }
 

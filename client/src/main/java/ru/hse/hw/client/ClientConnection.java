@@ -3,14 +3,12 @@ package ru.hse.hw.client;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.w3c.dom.ls.LSOutput;
+import javafx.geometry.Pos;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ClientConnection implements Runnable {
-    private final String addressServer;
-    private final int port;
     private final String playersName;
     private final GameController gameController;
     private final Socket socket;
@@ -18,8 +16,6 @@ public class ClientConnection implements Runnable {
     private final BufferedWriter writer;
 
     public ClientConnection(String addressServer, int port, String playersName, GameController gameController) throws IOException {
-        this.addressServer = addressServer;
-        this.port = port;
         this.playersName = playersName;
         this.gameController = gameController;
         socket = new Socket(addressServer, port);
@@ -29,7 +25,7 @@ public class ClientConnection implements Runnable {
 
     @Override
     public void run() {
-        try {
+        try (socket; reader; writer) {
             System.out.println("Клиент установил связь с сервером");
             writer.write(playersName);
             writer.newLine();
@@ -37,22 +33,31 @@ public class ClientConnection implements Runnable {
 
             while (Platform.isImplicitExit()) {
                 String category = reader.readLine();
-                System.out.println(category);
                 dataCategory(category);
             }
         } catch (IOException e) {
-            System.out.println("Сокет клиента закрыт");
-//            e.printStackTrace(System.err);
+            System.out.println("Сокет сервера закрыт");
+        } finally {
+            System.out.println("Сокет и буферы клиента закрыты");
         }
     }
 
     private void dataCategory(String category) throws IOException {
         switch (category) {
-            case "playersList":
-                playersList();
+            case "session_ID":
+                initializeSession();
                 break;
             case "preparationTime":
                 preparationTime();
+                break;
+            case "pauseTime":
+                pauseTime();
+                break;
+            case "playersList":
+                playersList();
+                break;
+            case "gameCondition":
+                gameCondition();
                 break;
             case "word":
                 showWord();
@@ -60,14 +65,70 @@ public class ClientConnection implements Runnable {
             case "answerOnRequest":
                 answerOnRequest();
                 break;
-            case "gameCondition":
-                gameCondition();
+            case "updateLetterPlayer":
+                updateLetterPlayer();
+                break;
+            case "playersMove":
+                playersMove();
+                break;
+            case "currentTimeSession":
+                currentTimeSession();
+                break;
+            case "winner":
+                showWinner();
+                break;
+            case "stopGame":
+                stopGame();
+                break;
             default:
                 break;
         }
     }
 
-    private void gameCondition() {
+    private void stopGame() throws IOException {
+        Platform.runLater(gameController::stopGame);
+        throw new IOException();
+    }
+
+    private void updateLetterPlayer() throws IOException {
+        try {
+            String playerName = reader.readLine();
+            int position = Integer.parseInt(reader.readLine());
+            Platform.runLater(() -> gameController.updateLetterPlayer(playerName, position));
+        } catch (NumberFormatException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void initializeSession() throws IOException{
+        try {
+           int session_ID = Integer.parseInt(reader.readLine());
+           Platform.runLater(() -> gameController.setSessionID(session_ID));
+        } catch (NumberFormatException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void pauseTime() {
+        Platform.runLater(() -> gameController.firstLabel.setText("Игра скоро начнется!"));
+    }
+
+    private void showWinner() throws IOException {
+        String nameWinner = reader.readLine();
+        Platform.runLater(() -> gameController.showWinner(nameWinner));
+    }
+
+    private void playersMove() throws IOException {
+        String string = reader.readLine();
+        Platform.runLater(() -> gameController.updatePlayersMoves(string));
+    }
+
+    private void currentTimeSession() throws IOException {
+        String time = reader.readLine();
+        Platform.runLater(() -> gameController.updateSessionTime(time));
+    }
+
+    private void gameCondition() throws IOException {
         try {
             int value = Integer.parseInt(reader.readLine());
             if (value == 1) {
@@ -75,29 +136,30 @@ public class ClientConnection implements Runnable {
             } else {
                 Platform.runLater(gameController::hideCharacters);
             }
-        } catch (IOException e) {
+        } catch (NumberFormatException e) {
             e.printStackTrace(System.err);
         }
     }
 
-    private void answerOnRequest() {
+    private void answerOnRequest() throws IOException {
         try {
             int value = Integer.parseInt(reader.readLine());
-            System.out.println(value);
             int pos = Integer.parseInt(reader.readLine());
-            System.out.println(pos);
             Platform.runLater(() -> gameController.updateWord(value, pos));
-        } catch (IOException | NumberFormatException e) {
+        } catch (NumberFormatException e) {
             e.printStackTrace(System.err);
         }
     }
 
-    private void showWord() {
+    private void showWord() throws IOException {
         try {
             int word = Integer.parseInt(reader.readLine());
-            System.out.println(word);
-            Platform.runLater(() -> gameController.showWord(word));
-        } catch (IOException | NumberFormatException e) {
+            Platform.runLater(() -> {
+                gameController.showWord(word);
+                gameController.firstLabel.setText("Время сессии:");
+                gameController.firstLabel.setAlignment(Pos.CENTER);
+            });
+        } catch (NumberFormatException e) {
             e.printStackTrace(System.err);
         }
     }
@@ -112,39 +174,27 @@ public class ClientConnection implements Runnable {
 
     private void playersList() throws IOException {
         ObservableList<String> players = FXCollections.observableArrayList();
-        int number = Integer.parseInt(reader.readLine());
-//        System.out.println(number);
-        for (int i = 0; i < number; i++) {
-            String player = reader.readLine();
-            players.add(player);
-//            System.out.println(player);
+        try {
+            int number = Integer.parseInt(reader.readLine());
+            for (int i = 0; i < number; i++) {
+                String player = reader.readLine();
+                players.add(player);
+            }
+            Platform.runLater(() -> gameController.updatePlayers(players));
+        } catch (NumberFormatException e) {
+            e.printStackTrace(System.err);
         }
-        Platform.runLater(() -> gameController.updatePlayers(players));
     }
 
     void requestOnCheckCharacter(String symbol, int pos) {
-        System.out.println(symbol);
         if (symbol.length() < 2) {
             try {
-                System.out.println(symbol);
-                writer.write(symbol);
-                writer.newLine();
-                writer.write(String.valueOf(pos));
-                writer.newLine();
+                String request = symbol + "\n" + pos + "\n";
+                writer.write(request);
                 writer.flush();
-            } catch (IOException | NumberFormatException e) {
-                e.printStackTrace(System.err);
+            } catch (IOException e) {
+                Platform.runLater(gameController::stopGame);
             }
-        }
-    }
-
-    void close() {
-        try {
-            socket.close();
-            reader.close();
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }

@@ -11,12 +11,10 @@
             <Font name="System Bold" size="25.0" />
          </font>
       </Label>
-      <ListView fx:id="listView" layoutX="488.0" layoutY="224.0" prefHeight="200.0" prefWidth="200.0" />
-      <Label layoutX="224.0" layoutY="242.0" text="Оставшееся время ожидания игроков:" />
-      <Label fx:id="timer" layoutX="452.0" layoutY="242.0" prefWidth="23.0" text="1:00" />
-      <ListView layoutX="14.0" layoutY="224.0" prefHeight="200.0" prefWidth="200.0" />
-      <ScrollBar layoutX="199.0" layoutY="224.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="15.0" />
-      <Button fx:id="buttonSend" layoutX="631.0" layoutY="497.0" mnemonicParsing="false" text="Send" onAction="#handleSend">
+      <ListView fx:id="listView" layoutX="246.0" layoutY="224.0" prefHeight="200.0" prefWidth="442.0" />
+      <Label fx:id="firstLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="14.0" layoutY="444.0" prefHeight="17.0" prefWidth="145.0" text="Подготовка сеанса:" />
+      <Label fx:id="timer" alignment="CENTER" contentDisplay="CENTER" layoutX="164.0" layoutY="444.0" prefHeight="17.0" prefWidth="97.0" />
+      <Button fx:id="buttonSend" layoutX="622.0" layoutY="497.0" mnemonicParsing="false" onAction="#handleSend" text="Send">
          <font>
             <Font size="18.0" />
          </font>
@@ -26,13 +24,23 @@
             <Font size="18.0" />
          </font>
       </Label>
-      <Label layoutX="522.0" layoutY="184.0" text="Список игроков">
+      <Label layoutX="401.0" layoutY="184.0" text="Список игроков">
          <font>
             <Font size="18.0" />
          </font>
       </Label>
-      <Label layoutX="452.0" layoutY="267.0" text="1:00" />
-      <Label layoutX="294.0" layoutY="267.0" text="Таймер хода:" />
-      <HBox fx:id="hBox" alignment="CENTER" layoutX="23.0" layoutY="80.0" prefHeight="59.0" prefWidth="655.0" />
+      <FlowPane fx:id="flowPane" alignment="CENTER" columnHalignment="CENTER" hgap="2.0" layoutX="5.0" layoutY="60.0" prefHeight="115.0" prefWidth="690.0" vgap="5.0" />
+      <ScrollPane layoutX="14.0" layoutY="224.0" prefHeight="200.0" prefWidth="200.0">
+        <content>
+          <ListView fx:id="listPlayersMoves" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
+        </content>
+      </ScrollPane>
+      <Label layoutX="5.0" layoutY="6.0" text="session_ID: " />
+      <Label fx:id="session_ID" layoutX="66.0" layoutY="6.0" prefHeight="17.0" prefWidth="35.0" />
+      <Button fx:id="buttonExit" alignment="CENTER" layoutX="14.0" layoutY="497.0" mnemonicParsing="false" onAction="#handleExit" prefHeight="39.0" prefWidth="64.0" text="Exit" visible="false">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>

@@ -41,6 +41,8 @@ public class ServerController {
     @FXML
     public Label serverCondition;
     @FXML
+    public Button buttonApply;
+    @FXML
     private TextField PORT;
     @FXML
     private TextField playersNumber;
@@ -67,18 +69,15 @@ public class ServerController {
     @FXML
     public void initialize() {
         List<ImageView> listImageView = Arrays.asList(imageViewPORT, imageViewPlayersNumber, imageViewSessionPreparationTime, imageViewSessionDurationLimit,
-                imageViewPauseTime, imageViewSuccessNotificationPeriod, imageViewNumberCharacters);
+                imageViewPauseTime, imageViewSuccessNotificationPeriod);
         setImage(listImageView);
-        hiddenWord.setDisable(true);
 
         Hashtable<TextField, ImageView> textFields = new Hashtable<>();
         textFields.put(PORT, imageViewPORT);
-        textFields.put(playersNumber, imageViewPlayersNumber);
         textFields.put(sessionPreparationTime, imageViewSessionPreparationTime);
         textFields.put(sessionDurationLimit, imageViewSessionDurationLimit);
         textFields.put(pauseTime, imageViewPauseTime);
         textFields.put(successNotificationPeriod, imageViewSuccessNotificationPeriod);
-        textFields.put(numberCharacters, imageViewNumberCharacters);
 
         for (TextField textField : textFields.keySet()) {
             textField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -90,34 +89,47 @@ public class ServerController {
             });
         }
 
+        playersNumber.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!isValidPlayers(newValue)) {
+                setWarning(playersNumber, imageViewPlayersNumber);
+            } else {
+                removeWarning(playersNumber, imageViewPlayersNumber);
+            }
+        });
+
+        numberCharacters.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!isValid(newValue)) {
+                buttonApply.setVisible(false);
+                setWarning(numberCharacters, imageViewNumberCharacters);
+            } else {
+                buttonApply.setVisible(true);
+                removeWarning(numberCharacters, imageViewNumberCharacters);
+            }
+        });
+
         hiddenWord.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!isValidWord(newValue)) {
+                buttonApply.setVisible(false);
                 setWarning(hiddenWord, imageViewHiddenWord);
             } else {
+                buttonApply.setVisible(true);
                 removeWarning(hiddenWord, imageViewHiddenWord);
             }
         });
 
         BooleanBinding allFieldsValid = Bindings.createBooleanBinding(() ->
                 isValid(PORT.getText()) &&
-                isValid(playersNumber.getText()) &&
+                isValidPlayers(playersNumber.getText()) &&
                 isValid(sessionPreparationTime.getText()) &&
                 isValid(sessionDurationLimit.getText()) &&
                 isValid(pauseTime.getText()) &&
-                isValid(successNotificationPeriod.getText()) &&
-                (!checkBoxNumberCharacters.isSelected() || isValid(numberCharacters.getText())) &&
-                (!checkBoxHiddenWord.isSelected() || isValidWord(hiddenWord.getText())) &&
-                (checkBoxHiddenWord.isSelected() || checkBoxNumberCharacters.isSelected()),
+                isValid(successNotificationPeriod.getText()),
                 PORT.textProperty(),
                 playersNumber.textProperty(),
                 sessionPreparationTime.textProperty(),
                 sessionDurationLimit.textProperty(),
                 pauseTime.textProperty(),
-                successNotificationPeriod.textProperty(),
-                hiddenWord.textProperty(),
-                numberCharacters.textProperty(),
-                checkBoxHiddenWord.selectedProperty(),
-                checkBoxNumberCharacters.selectedProperty()
+                successNotificationPeriod.textProperty()
                 );
 
         startServer.disableProperty().bind(allFieldsValid.not());
@@ -125,31 +137,37 @@ public class ServerController {
         checkBoxNumberCharacters.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (checkBoxNumberCharacters.isSelected()) {
                 if (!isValid(numberCharacters.getText())) {
+                    buttonApply.setVisible(false);
                     setWarning(numberCharacters, imageViewNumberCharacters);
                 } else {
+                    buttonApply.setVisible(true);
                     removeWarning(numberCharacters, imageViewNumberCharacters);
                 }
                 checkBoxHiddenWord.setSelected(false);
                 hiddenWord.setTooltip(null);
                 hiddenWord.setStyle(null);
                 hiddenWord.setDisable(true);
-                numberCharacters.setDisable(false);
                 imageViewHiddenWord.setImage(null);
+
+                numberCharacters.setDisable(false);
             }
             else {
                 imageViewNumberCharacters.setImage(null);
                 numberCharacters.setTooltip(null);
                 numberCharacters.setStyle(null);
                 numberCharacters.setDisable(true);
+                buttonApply.setVisible(false);
             }
         });
 
         checkBoxHiddenWord.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (checkBoxHiddenWord.isSelected()) {
                 if (!isValidWord(hiddenWord.getText())) {
+                    buttonApply.setVisible(false);
                     setWarning(hiddenWord, imageViewHiddenWord);
                     hiddenWord.setTooltip(new Tooltip("В поле ввода должно быть слово"));
                 } else {
+                    buttonApply.setVisible(true);
                     removeWarning(hiddenWord, imageViewHiddenWord);
                 }
                 imageViewNumberCharacters.setImage(null);
@@ -164,6 +182,7 @@ public class ServerController {
                 hiddenWord.setTooltip(null);
                 hiddenWord.setStyle(null);
                 hiddenWord.setDisable(true);
+                buttonApply.setVisible(false);
             }
         });
     }
@@ -175,15 +194,17 @@ public class ServerController {
                 server = new Server(Integer.parseInt(PORT.getText()), Integer.parseInt(playersNumber.getText()), Integer.parseInt(sessionPreparationTime.getText()),
                         Integer.parseInt(sessionDurationLimit.getText()), Integer.parseInt(pauseTime.getText()), Integer.parseInt(successNotificationPeriod.getText()));
                 serverCondition.setText("Сервер запущен");
-                Thread thread = new Thread(server);
-                thread.start();
+                actionButtonApply();
+                server.start();
 
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                 stage.setOnCloseRequest((e) -> {
                     Platform.setImplicitExit(false);
-                    thread.interrupt();
                     if (server != null) {
-                        server.stop();
+                        server.stopServer();
+                        if (server.isAlive()) {
+                            server.interrupt();
+                        }
                     }
                     Platform.exit();
                 });
@@ -196,15 +217,25 @@ public class ServerController {
     @FXML
     protected void stopServer(ActionEvent event) {
         if (server != null) {
-            server.stop();
+            server.stopServer();
             server = null;
             serverCondition.setText("Сервер остановлен");
         }
     }
 
     @FXML
-    protected void checkBoxAction(ActionEvent event) {
-
+    protected void actionButtonApply() {
+        if (server != null) {
+            if (checkBoxNumberCharacters.isSelected()) {
+                String number = numberCharacters.getText();
+                server.setLimit(number);
+            } else if (checkBoxHiddenWord.isSelected()) {
+                String word = hiddenWord.getText();
+                server.setLimit(word);
+            } else {
+                server.setLimit("");
+            }
+        }
     }
 
     private void setWarning(TextField textField, ImageView imageView) {
@@ -230,7 +261,11 @@ public class ServerController {
         return string != null && !string.trim().isEmpty() && string.matches("\\d+");
     }
 
+    private boolean isValidPlayers(String string) {
+        return string != null && !string.trim().isEmpty() && string.matches("[1-9]{1}\\d*");
+    }
+
     private boolean isValidWord(String string) {
-        return string != null && !string.trim().isEmpty() && string.matches("[а-яА-Я]+");
+        return string != null && !string.trim().isEmpty() && string.matches("[а-яА-Я]{5,}");
     }
 }

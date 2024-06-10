@@ -7,8 +7,8 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.hse.hw.server.ServerController">
    <children>
-      <Button fx:id="startServer" layoutX="536.0" layoutY="456.0" mnemonicParsing="false" onAction="#startServer" prefHeight="30.0" prefWidth="150.0" text="Запустить сервер" />
-      <Button fx:id="stopServer" layoutX="14.0" layoutY="456.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="150.0" text="Остановить сервер" onAction="#stopServer"/>
+      <Button fx:id="startServer" layoutX="574.0" layoutY="456.0" mnemonicParsing="false" onAction="#startServer" prefHeight="30.0" prefWidth="112.0" text="Запустить сервер" />
+      <Button fx:id="stopServer" layoutX="67.0" layoutY="456.0" mnemonicParsing="false" onAction="#stopServer" prefHeight="30.0" prefWidth="136.0" text="Остановить сервер" />
       <AnchorPane layoutX="50.0" layoutY="69.0" prefHeight="330.0" prefWidth="600.0">
          <children>
             <AnchorPane layoutX="350.0" layoutY="40.0" prefHeight="180.0" prefWidth="296.0">
@@ -54,14 +54,14 @@
             </Label>
             <AnchorPane layoutY="285.0" prefHeight="58.0" prefWidth="208.0">
                <children>
-                  <CheckBox fx:id="checkBoxNumberCharacters" layoutX="37.0" layoutY="14.0" mnemonicParsing="false" selected="true" text="Количество букв в слове" />
+                  <CheckBox fx:id="checkBoxNumberCharacters" layoutX="37.0" layoutY="14.0" mnemonicParsing="false" text="Количество букв в слове" />
                   <CheckBox fx:id="checkBoxHiddenWord" layoutX="37.0" layoutY="44.0" mnemonicParsing="false" text="Загадываемое слово" />
                </children>
             </AnchorPane>
             <AnchorPane layoutX="350.0" layoutY="292.0" prefHeight="63.0" prefWidth="250.0">
                <children>
-                  <TextField fx:id="numberCharacters" alignment="CENTER" layoutY="1.0" prefHeight="26.0" prefWidth="250.0" text="5" />
-                  <TextField fx:id="hiddenWord" alignment="CENTER" layoutY="35.0" prefHeight="26.0" prefWidth="250.0" />
+                  <TextField fx:id="numberCharacters" alignment="CENTER" disable="true" layoutY="1.0" prefHeight="26.0" prefWidth="250.0" text="5" />
+                  <TextField fx:id="hiddenWord" alignment="CENTER" disable="true" layoutY="35.0" prefHeight="26.0" prefWidth="250.0" />
                </children>
             </AnchorPane>
             <ImageView fx:id="imageViewNumberCharacters" fitHeight="24.0" fitWidth="24.0" layoutX="608.0" layoutY="295.0" pickOnBounds="true" preserveRatio="true" />
@@ -78,5 +78,6 @@
             <Font name="System Italic" size="18.0" />
          </font>
       </Label>
+      <Button fx:id="buttonApply" layoutX="450.0" layoutY="456.0" mnemonicParsing="false" prefHeight="30.0" prefWidth="112.0" text="Применить" visible="false" onAction="#actionButtonApply"/>
    </children>
 </AnchorPane>
