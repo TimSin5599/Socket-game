@@ -7,8 +7,8 @@
     <groupId>ru.hse.HW</groupId>
     <artifactId>HW3</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>HW3</name>
-    <packaging>jar</packaging>
     <modules>
         <module>server</module>
         <module>client</module>
