@@ -61,12 +61,12 @@ public class ClientConnection extends Thread {
             writer.newLine();
             writer.flush();
 
-            while (Platform.isImplicitExit()) {
+            while (true) {
                 String category = reader.readLine();
                 dataCategory(category);
             }
         } catch (IOException e) {
-            System.out.println("Сокет сервера закрыт");
+            System.out.println("Сокет клиента был закрыт или сервер был остановлен");
         } finally {
             System.out.println("Сокет и буферы клиента закрыты");
         }
@@ -262,6 +262,16 @@ public class ClientConnection extends Thread {
             } catch (IOException e) {
                 Platform.runLater(gameController::stopGame);
             }
+        }
+    }
+
+    void close() {
+        try {
+            reader.close();
+            writer.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
     }
 }

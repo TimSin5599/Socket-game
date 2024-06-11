@@ -110,6 +110,7 @@ public class ClientController {
             stage.setOnCloseRequest(e -> {
                 Platform.setImplicitExit(false);
                 connection.interrupt();
+                connection.close();
                 Platform.exit();
             });
         } catch (IOException e) {
