@@ -8,13 +8,40 @@ import javafx.geometry.Pos;
 import java.io.*;
 import java.net.Socket;
 
-public class ClientConnection implements Runnable {
+/**
+ * The ClientConnection class which provides connection and communication with the server
+ */
+public class ClientConnection extends Thread {
+    /**
+     * players name
+     */
     private final String playersName;
+    /**
+     * game controller
+     */
     private final GameController gameController;
+    /**
+     * client socket
+     */
     private final Socket socket;
+    /**
+     * Reader for reading data from a socket
+     */
     private final BufferedReader reader;
+    /**
+     * Writer for writing data from a socket
+     */
     private final BufferedWriter writer;
 
+    /**
+     * ClientConnection builder
+     * @param addressServer server host
+     * @param port port
+     * @param playersName player name
+     * @param gameController game controller
+     * @throws IOException if an I/ O error occurs when creating the input stream, the socket is closed,
+     * the socket is not connected, or the socket input has been shutdown using shutdownInput()
+     */
     public ClientConnection(String addressServer, int port, String playersName, GameController gameController) throws IOException {
         this.playersName = playersName;
         this.gameController = gameController;
@@ -23,6 +50,9 @@ public class ClientConnection implements Runnable {
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
+    /**
+     * The function that writes the player's name at startup and then accepts a category of data from the server
+     */
     @Override
     public void run() {
         try (socket; reader; writer) {
@@ -42,6 +72,11 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * The {@code dataCategory()} function defines the function needed to read the data
+     * @param category the category of data to be received by the client
+     * @throws IOException if the socket is closed
+     */
     private void dataCategory(String category) throws IOException {
         switch (category) {
             case "session_ID":
@@ -55,9 +90,6 @@ public class ClientConnection implements Runnable {
                 break;
             case "playersList":
                 playersList();
-                break;
-            case "gameCondition":
-                gameCondition();
                 break;
             case "word":
                 showWord();
@@ -74,8 +106,8 @@ public class ClientConnection implements Runnable {
             case "currentTimeSession":
                 currentTimeSession();
                 break;
-            case "winner":
-                showWinner();
+            case "listPlayers":
+                showTable();
                 break;
             case "stopGame":
                 stopGame();
@@ -85,11 +117,19 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function for stopping the game
+     * @throws IOException if the socket is closed
+     */
     private void stopGame() throws IOException {
         Platform.runLater(gameController::stopGame);
         throw new IOException();
     }
 
+    /**
+     * Function to update the state of the player's letter
+     * @throws IOException if the socket is closed
+     */
     private void updateLetterPlayer() throws IOException {
         try {
             String playerName = reader.readLine();
@@ -100,6 +140,10 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function for session initialization in the client window
+     * @throws IOException if the socket is closed
+     */
     private void initializeSession() throws IOException{
         try {
            int session_ID = Integer.parseInt(reader.readLine());
@@ -109,38 +153,44 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function for changing the label in the client window
+     */
     private void pauseTime() {
         Platform.runLater(() -> gameController.firstLabel.setText("Игра скоро начнется!"));
     }
 
-    private void showWinner() throws IOException {
-        String nameWinner = reader.readLine();
-        Platform.runLater(() -> gameController.showWinner(nameWinner));
+    /**
+     * Function to show the table of the player with their current results
+     * @throws IOException if the socket is closed
+     */
+    private void showTable() throws IOException {
+        String playerList = reader.readLine();
+        Platform.runLater(() -> gameController.showTable(playerList));
     }
 
+    /**
+     * Function for recording player movement on the FlowPane
+     * @throws IOException if the socket is closed
+     */
     private void playersMove() throws IOException {
         String string = reader.readLine();
         Platform.runLater(() -> gameController.updatePlayersMoves(string));
     }
 
+    /**
+     * Function for setting the current session time in the client window
+     * @throws IOException if the socket is closed
+     */
     private void currentTimeSession() throws IOException {
         String time = reader.readLine();
         Platform.runLater(() -> gameController.updateSessionTime(time));
     }
 
-    private void gameCondition() throws IOException {
-        try {
-            int value = Integer.parseInt(reader.readLine());
-            if (value == 1) {
-                Platform.runLater(gameController::openCharacters);
-            } else {
-                Platform.runLater(gameController::hideCharacters);
-            }
-        } catch (NumberFormatException e) {
-            e.printStackTrace(System.err);
-        }
-    }
-
+    /**
+     * Function for updating the state of a letter in a word
+     * @throws IOException if the socket is closed
+     */
     private void answerOnRequest() throws IOException {
         try {
             int value = Integer.parseInt(reader.readLine());
@@ -151,6 +201,10 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function starts the main part of the game
+     * @throws IOException if the socket is closed
+     */
     private void showWord() throws IOException {
         try {
             int word = Integer.parseInt(reader.readLine());
@@ -164,6 +218,10 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function for setting the remaining time to prepare for the game
+     * @throws IOException if the socket is closed
+     */
     private void preparationTime() throws IOException {
         String time = reader.readLine();
         if (time == null) {
@@ -172,6 +230,10 @@ public class ClientConnection implements Runnable {
         Platform.runLater(() -> gameController.updatePreparationTime(time));
     }
 
+    /**
+     * Function setting the current list of players on the FlowPane
+     * @throws IOException if the socket is closed
+     */
     private void playersList() throws IOException {
         ObservableList<String> players = FXCollections.observableArrayList();
         try {
@@ -186,6 +248,11 @@ public class ClientConnection implements Runnable {
         }
     }
 
+    /**
+     * Function for sending a request to the server
+     * @param symbol letter
+     * @param pos position
+     */
     void requestOnCheckCharacter(String symbol, int pos) {
         if (symbol.length() < 2) {
             try {
