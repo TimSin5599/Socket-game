@@ -4,10 +4,7 @@ import ru.hse.hw.util.WordsReader;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -52,10 +49,6 @@ public class Session extends Thread {
      * riddle word
      */
     private String word;
-    /**
-     * stroke order during the session
-     */
-    private volatile int orderMove;
     /**
      * the limit of letters
      */
@@ -102,7 +95,6 @@ public class Session extends Thread {
         } else {
             words = WordsReader.readWords();
         }
-        orderMove = 0;
     }
 
     /**
@@ -277,41 +269,23 @@ public class Session extends Thread {
             e.printStackTrace(System.err);
         }
     }
-
-    /**
-     * The function is used to send the user's movements to the players to record this information in movement list in the client window
-     * @param playerName player name
-     * @param answerServer server response
-     * @param pos letter position
-     * @param letter letter entered by the client
-     */
-    synchronized void strokeRecord(String playerName, int answerServer, int pos, String letter) {
-        ListIterator<Connection> listIterator = connections.listIterator();
-        while (listIterator.hasNext()) {
-            Connection connection = listIterator.next();
-            String string = "playersMove\n" + orderMove + " " + playerName + " " +
-                    pos + " " + letter + " " + answerServer + "\n";
-            write(connection, string, listIterator);
-        }
-    }
-
     /**
      * The function is used to send the winning player in all sessions and to stop the game
      */
     synchronized void printWinner() {
-        String nameWinner = "";
-        for (Connection connection : connections) {
-            if (connection.getPlayerScore() == word.length()) {
-                nameWinner = connection.getNamePlayer();
-                break;
-            }
+        connections.sort(new ConnectionComparator());
+
+        StringBuilder listPlayers = new StringBuilder();
+        for (Connection conn : connections) {
+            listPlayers.append(conn.getNamePlayer()).append(" ");
+            System.out.println(conn.getNamePlayer());
         }
 
         ListIterator<Connection> listIterator = connections.listIterator();
         while (listIterator.hasNext()) {
             Connection connection = listIterator.next();
             connection.interrupt();
-            write(connection, "winner\n" + nameWinner + "\n", listIterator);
+            write(connection, "listPlayers\n" + listPlayers + "\n", listIterator);
         }
     }
 
@@ -392,13 +366,6 @@ public class Session extends Thread {
      */
     synchronized void stopGame() {
         serviceDurationSession.shutdown();
-    }
-
-    /**
-     * The function adds +1 to the order movement counter
-     */
-    synchronized void incrementOrder() {
-        ++orderMove;
     }
 
     /**

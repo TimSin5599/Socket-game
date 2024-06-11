@@ -259,6 +259,8 @@ public class ServerController {
 
     /**
      * The function for setting a warning on a text field
+     * @param textField text field value to set a warning
+     * @param imageView image location to set the wrong image
      */
     private void setWarning(TextField textField, ImageView imageView) {
         textField.setStyle("-fx-border-color: red;");
@@ -269,6 +271,8 @@ public class ServerController {
 
     /**
      * The function for deactivating the warning in the text field
+     * @param textField text field value to remove a warning
+     * @param imageView image location to set the correct image
      */
     private void removeWarning(TextField textField, ImageView imageView) {
         textField.setStyle(null);
@@ -277,7 +281,8 @@ public class ServerController {
     }
 
     /**
-     * The function for placing an image next to a text field
+     * The function for placing images next to text fields
+     * @param listImageView image list
      */
     private void setImage(List<ImageView> listImageView) {
         for (ImageView imageView : listImageView) {
@@ -287,6 +292,8 @@ public class ServerController {
 
     /**
      * Function to check a string for validity
+     * @param string a string for checking
+     * @return a boolean value which indicates the correctness of the string
      */
     private boolean isValid(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("\\d+");
@@ -294,6 +301,8 @@ public class ServerController {
 
     /**
      * Function to check the number of players for validity
+     * @param string a string for checking
+     * @return a boolean value which indicates the correctness of the string
      */
     private boolean isValidPlayers(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("[1-9]{1}\\d*");
@@ -301,6 +310,8 @@ public class ServerController {
 
     /**
      * The function of checking the riddle word for validity
+     * @param string a string for checking
+     * @return a boolean value which indicates the correctness of the string
      */
     private boolean isValidWord(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("[а-яА-Я]{5,}");

@@ -1,4 +1,4 @@
-module ru.hse.hw.server {
+module server {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.compiler;

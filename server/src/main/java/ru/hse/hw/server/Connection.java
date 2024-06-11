@@ -35,6 +35,10 @@ public class Connection extends Thread {
      * This field shows the current state of the letters in their places
      */
     private int[] letterCondition;
+    /**
+     * stroke order during the session
+     */
+    private int orderMove;
 
     /**
      * Connection builder
@@ -48,6 +52,7 @@ public class Connection extends Thread {
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         playerScore = 0;
+        orderMove = 0;
     }
 
     /**
@@ -61,7 +66,7 @@ public class Connection extends Thread {
             try {
                 String value = reader.readLine();
                 int pos = Integer.parseInt(reader.readLine());
-                session.incrementOrder();
+                incrementOrder();
 
                 if (value.length() == 1) { // Проверка, что пользователь ввел не более чем 1 букву
                     char c = value.charAt(0);
@@ -81,7 +86,7 @@ public class Connection extends Thread {
                         stringBuilder.append("-1").append("\n");
                     }
 
-                    session.strokeRecord(this.getNamePlayer(), answerServer, pos, value);
+                    strokeRecord(value, pos, answerServer);
 
                     stringBuilder.append(pos).append("\n");
                     writer.write(stringBuilder.toString());
@@ -93,6 +98,22 @@ public class Connection extends Thread {
                 this.close();
                 break;
             }
+        }
+    }
+
+    /**
+     * The function is used to send user movements to the client window to record this information in the list of movements in the client window
+     * @param answerServer server response
+     * @param pos letter position
+     * @param letter letter entered by the client
+     */
+    void strokeRecord(String letter, int pos, int answerServer) {
+        String string = "playersMove\n" + orderMove + " " + letter + " " + pos + " " + answerServer + "\n";
+        try {
+            writer.write(string);
+            writer.flush();
+        } catch (IOException e) {
+            this.close();
         }
     }
 
@@ -131,8 +152,15 @@ public class Connection extends Thread {
     /**
      * The function is used to add a player's points by +1
      */
-    synchronized void incrementScore() {
+    void incrementScore() {
         ++playerScore;
+    }
+
+    /**
+     * The function adds +1 to the order movement counter
+     */
+    void incrementOrder() {
+        ++orderMove;
     }
 
     /**
