@@ -11,30 +11,25 @@
             <Font name="System Bold" size="25.0" />
          </font>
       </Label>
-      <ListView fx:id="listView" layoutX="246.0" layoutY="224.0" prefHeight="200.0" prefWidth="442.0" />
-      <Label fx:id="firstLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="14.0" layoutY="444.0" prefHeight="17.0" prefWidth="145.0" text="Подготовка сеанса:" />
-      <Label fx:id="timer" alignment="CENTER" contentDisplay="CENTER" layoutX="164.0" layoutY="444.0" prefHeight="17.0" prefWidth="97.0" />
+      <ListView fx:id="listView" layoutX="269.0" layoutY="286.0" prefHeight="200.0" prefWidth="420.0" />
+      <Label fx:id="firstLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="218.0" layoutY="497.0" prefHeight="17.0" prefWidth="145.0" text="Подготовка сеанса:" />
+      <Label fx:id="timer" alignment="CENTER" contentDisplay="CENTER" layoutX="363.0" layoutY="497.0" prefHeight="17.0" prefWidth="100.0" />
       <Button fx:id="buttonSend" layoutX="622.0" layoutY="497.0" mnemonicParsing="false" onAction="#handleSend" text="Send">
          <font>
             <Font size="18.0" />
          </font>
       </Button>
-      <Label layoutX="57.0" layoutY="184.0" text="Список ходов">
+      <Label layoutX="74.0" layoutY="240.0" text="Список ходов">
          <font>
             <Font size="18.0" />
          </font>
       </Label>
-      <Label layoutX="401.0" layoutY="184.0" text="Список игроков">
+      <Label layoutX="413.0" layoutY="240.0" text="Список игроков">
          <font>
             <Font size="18.0" />
          </font>
       </Label>
-      <FlowPane fx:id="flowPane" alignment="CENTER" columnHalignment="CENTER" hgap="2.0" layoutX="5.0" layoutY="60.0" prefHeight="115.0" prefWidth="690.0" vgap="5.0" />
-      <ScrollPane layoutX="14.0" layoutY="224.0" prefHeight="200.0" prefWidth="200.0">
-        <content>
-          <ListView fx:id="listPlayersMoves" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
-        </content>
-      </ScrollPane>
+      <FlowPane fx:id="flowPane" alignment="CENTER" columnHalignment="CENTER" hgap="2.0" layoutX="5.0" layoutY="83.0" prefHeight="115.0" prefWidth="690.0" vgap="5.0" />
       <Label layoutX="5.0" layoutY="6.0" text="session_ID: " />
       <Label fx:id="session_ID" layoutX="66.0" layoutY="6.0" prefHeight="17.0" prefWidth="35.0" />
       <Button fx:id="buttonExit" alignment="CENTER" layoutX="14.0" layoutY="497.0" mnemonicParsing="false" onAction="#handleExit" prefHeight="39.0" prefWidth="64.0" text="Exit" visible="false">
@@ -42,5 +37,14 @@
             <Font size="18.0" />
          </font>
       </Button>
+      <TableView fx:id="listPlayersMoves" editable="true" layoutX="5.0" layoutY="286.0" prefHeight="200.0" prefWidth="252.0">
+        <columns>
+          <TableColumn fx:id="orderMove" prefWidth="75.0" text="Ход игрока" />
+          <TableColumn fx:id="letter" prefWidth="40.0" text="Буква" />
+            <TableColumn fx:id="place" prefWidth="45.0" text="Место" />
+            <TableColumn fx:id="serverResponse" prefWidth="90.0" text="Ответ сервера" />
+        </columns>
+      </TableView>
+      <VBox fx:id="winnerTable" alignment="CENTER" layoutX="75.0" layoutY="50.0" prefHeight="177.0" prefWidth="550.0" visible="false" />
    </children>
 </AnchorPane>

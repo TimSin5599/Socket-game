@@ -1,4 +1,4 @@
-module ru.hse.hw.client {
+module client {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.xml;
