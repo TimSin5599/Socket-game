@@ -94,7 +94,7 @@ public class Connection extends Thread {
 
                     checkWin();
                 }
-            } catch (IOException | NumberFormatException e) {
+            } catch (IOException | NumberFormatException  e) {
                 this.close();
                 break;
             }

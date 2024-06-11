@@ -109,6 +109,7 @@ public class Session extends Thread {
 
             preparationSession();
 
+            status = true;
             if (connections.isEmpty()) {
                 Thread.currentThread().interrupt();
                 return;
@@ -116,7 +117,6 @@ public class Session extends Thread {
 
             pauseSession();
 
-            status = true;
 
             // In this step, the session defines the word to be guessed
             Random random = new Random();
@@ -128,7 +128,6 @@ public class Session extends Thread {
             } else if (word == null) {
                 word = words[random.nextInt(words.length)];
             }
-            System.out.println(word);
 
             ListIterator<Connection> listIterator = connections.listIterator();
             while (listIterator.hasNext()) { // sends clients the length of the riddle word
@@ -138,7 +137,7 @@ public class Session extends Thread {
                 connection.start();
             }
             time = System.currentTimeMillis();
-
+            System.out.println(word);
 
             serviceDurationSession.scheduleWithFixedDelay(() -> {
                 ListIterator<Connection> iterator = connections.listIterator();
@@ -168,11 +167,23 @@ public class Session extends Thread {
             }
 
             printWinner();
-
         } catch (InterruptedException e) {
+            System.err.println("Приложение сервера было закрыто");
             e.printStackTrace(System.err);
         } finally {
-            for (Connection connection : connections) {
+            if (!serviceDurationSession.isShutdown()) {
+                serviceDurationSession.shutdown();
+            }
+
+            ListIterator<Connection> listIterator = connections.listIterator();
+            while (listIterator.hasNext()) {
+                Connection connection = listIterator.next();
+                write(connection, "stopGame\n", listIterator);
+            }
+
+            listIterator = connections.listIterator();
+            while (listIterator.hasNext()) {
+                Connection connection = listIterator.next();
                 connection.interrupt();
                 connection.close();
             }
@@ -278,7 +289,6 @@ public class Session extends Thread {
         StringBuilder listPlayers = new StringBuilder();
         for (Connection conn : connections) {
             listPlayers.append(conn.getNamePlayer()).append(" ");
-            System.out.println(conn.getNamePlayer());
         }
 
         ListIterator<Connection> listIterator = connections.listIterator();

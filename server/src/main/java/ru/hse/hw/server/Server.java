@@ -112,6 +112,8 @@ public class Server extends Thread {
             }
         } catch (IOException e) {
             System.out.println("Сокет сервера закрыт");
+        } finally {
+            stopServer();
         }
     }
 
@@ -120,7 +122,27 @@ public class Server extends Thread {
      */
     void stopServer() {
         try {
-            for (Session session : listSessions) {
+            ListIterator<Session> listSessionsIterator = listSessions.listIterator();
+            while (listSessionsIterator.hasNext()) {
+                Session game = listSessionsIterator.next();
+                ListIterator<Connection> connectionsIterator = game.getConnections().listIterator();
+                while (connectionsIterator.hasNext()) {
+                    Connection connection = connectionsIterator.next();
+                    BufferedWriter writer = connection.getWriter();
+                    try {
+                        writer.write("stopGame\n");
+                        writer.flush();
+                    } catch (IOException ignore) {
+                    }
+                    if (connection.isAlive()) {
+                        connection.close();
+                    }
+                }
+                if (game.isAlive()) {
+                    game.interrupt();
+                }
+            }
+            /*for (Session session : listSessions) {
                 List<Connection> listConnections = session.getConnections();
                 for (Connection connection : listConnections) {
                     BufferedWriter writer = connection.getWriter();
@@ -132,7 +154,7 @@ public class Server extends Thread {
                     }
                     connection.close();
                 }
-            }
+            }*/
         }
         finally {
             try {
