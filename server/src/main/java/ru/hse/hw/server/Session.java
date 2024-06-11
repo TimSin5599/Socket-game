@@ -12,6 +12,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The Session class is used as the session in which players will compete against each other
+ */
 public class Session extends Thread {
     /**
      * the number of players
@@ -408,7 +411,7 @@ public class Session extends Thread {
     /**
      * @return the guessed word
      */
-    public String getWord() {
+    String getWord() {
         return word;
     }
 }

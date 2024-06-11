@@ -11,17 +11,57 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The Server class is used as a server which accepts players
+ */
 public class Server extends Thread {
+    /**
+     * Server socket
+     */
     private final ServerSocket serverSocket;
+    /**
+     * Number of players in one session
+     */
     private final int playersNumber;
+    /**
+     * The time to be spent preparing for the session
+     */
     private final int sessionPreparationTime;
+    /**
+     * Time during which the session will run
+     */
     private final int sessionDurationLimit;
+    /**
+     *  The time which will elapse between the preparation for the session and the main part of the game
+     */
     private final int pauseTime;
+    /**
+     * The time used to notify to players
+     */
     private final int successNotificationPeriod;
-    private final List<Session> listSessions;
+    /**
+     * List of sessions
+     */
+    private volatile List<Session> listSessions;
+    /**
+     * This field is used to limit the quantity of letters in word
+     */
     private int limitLetters;
+    /**
+     * This field is used to set the riddle word
+     */
     private String limitWord;
 
+    /**
+     * Server builder
+     * @param port the port which the server will use
+     * @param playersNumber Number of players in one session
+     * @param sessionPreparationTime The time to be spent preparing for the session
+     * @param sessionDurationLimit Time during which the session will run
+     * @param pauseTime The time which will elapse between the preparation for the session and the main part of the game
+     * @param successNotificationPeriod The time used to notify to players
+     * @throws IOException if an I/ O error occurs when opening the socket
+     */
     public Server(int port, int playersNumber, int sessionPreparationTime, int sessionDurationLimit, int pauseTime, int successNotificationPeriod) throws IOException {
         serverSocket = new ServerSocket(port);
         this.playersNumber = playersNumber;
@@ -35,6 +75,10 @@ public class Server extends Thread {
         System.out.println("Сервер запущен, порт сервера - " + port);
     }
 
+    /**
+     * The {@code run()} function is used to accept clients into the game
+     * The {@code serviceUpdateSessions} is used to leave sessions that are running
+     */
     @Override
     public void run() {
         Session session = null;
@@ -71,6 +115,9 @@ public class Server extends Thread {
         }
     }
 
+    /**
+     * The function is used to close all connections and the server socket
+     */
     void stopServer() {
         try {
             for (Session session : listSessions) {
@@ -96,6 +143,10 @@ public class Server extends Thread {
         }
     }
 
+    /**
+     * The function sets a value to limit the number of letters or a riddle word
+     * @param value
+     */
     void setLimit(String value) {
         try {
             limitLetters = Integer.parseInt(value);

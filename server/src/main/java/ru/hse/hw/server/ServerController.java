@@ -60,8 +60,9 @@ public class ServerController {
     private TextField hiddenWord;
     @FXML
     private Button startServer;
-    @FXML
-    private Button stopServer;
+    /**
+     * Server instance
+     */
     private Server server;
     private final Image imageSuccess = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icon_success.png")));
     private final Image imageWarning = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icon_warning.png")));
@@ -79,6 +80,7 @@ public class ServerController {
         textFields.put(pauseTime, imageViewPauseTime);
         textFields.put(successNotificationPeriod, imageViewSuccessNotificationPeriod);
 
+        // Creating a listener for each text field
         for (TextField textField : textFields.keySet()) {
             textField.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (!isValid(newValue)) {
@@ -89,6 +91,7 @@ public class ServerController {
             });
         }
 
+        // Same listener, but with a different validation function inside
         playersNumber.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!isValidPlayers(newValue)) {
                 setWarning(playersNumber, imageViewPlayersNumber);
@@ -97,6 +100,7 @@ public class ServerController {
             }
         });
 
+        // Same listener, but with a different validation function inside
         numberCharacters.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!isValid(newValue)) {
                 buttonApply.setVisible(false);
@@ -107,6 +111,7 @@ public class ServerController {
             }
         });
 
+        // Same listener, but with a different validation function inside
         hiddenWord.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!isValidWord(newValue)) {
                 buttonApply.setVisible(false);
@@ -117,6 +122,7 @@ public class ServerController {
             }
         });
 
+        // Conditions for displaying the server start button
         BooleanBinding allFieldsValid = Bindings.createBooleanBinding(() ->
                 isValid(PORT.getText()) &&
                 isValidPlayers(playersNumber.getText()) &&
@@ -134,6 +140,7 @@ public class ServerController {
 
         startServer.disableProperty().bind(allFieldsValid.not());
 
+        // Listener for the checkBox
         checkBoxNumberCharacters.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (checkBoxNumberCharacters.isSelected()) {
                 if (!isValid(numberCharacters.getText())) {
@@ -160,6 +167,7 @@ public class ServerController {
             }
         });
 
+        // Listener for the checkBox
         checkBoxHiddenWord.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (checkBoxHiddenWord.isSelected()) {
                 if (!isValidWord(hiddenWord.getText())) {
@@ -187,6 +195,11 @@ public class ServerController {
         });
     }
 
+    /**
+     * The function which is used after the server start button is pressed
+     * @param event event
+     * @throws IOException if the server instance fails
+     */
     @FXML
     protected void startServer(ActionEvent event) throws IOException {
         try {
@@ -214,8 +227,11 @@ public class ServerController {
         }
     }
 
+    /**
+     * Server stop function which is used after the pressing the server end button
+     */
     @FXML
-    protected void stopServer(ActionEvent event) {
+    protected void stopServer() {
         if (server != null) {
             server.stopServer();
             server = null;
@@ -223,6 +239,9 @@ public class ServerController {
         }
     }
 
+    /**
+     * Function for the "apply" button which sets a limit on the number of letters or a riddle word
+     */
     @FXML
     protected void actionButtonApply() {
         if (server != null) {
@@ -238,6 +257,9 @@ public class ServerController {
         }
     }
 
+    /**
+     * The function for setting a warning on a text field
+     */
     private void setWarning(TextField textField, ImageView imageView) {
         textField.setStyle("-fx-border-color: red;");
         Tooltip tooltip = new Tooltip("В поле ввода должно быть число");
@@ -245,26 +267,41 @@ public class ServerController {
         imageView.setImage(imageWarning);
     }
 
+    /**
+     * The function for deactivating the warning in the text field
+     */
     private void removeWarning(TextField textField, ImageView imageView) {
         textField.setStyle(null);
         textField.setTooltip(null);
         imageView.setImage(imageSuccess);
     }
 
+    /**
+     * The function for placing an image next to a text field
+     */
     private void setImage(List<ImageView> listImageView) {
         for (ImageView imageView : listImageView) {
             imageView.setImage(imageSuccess);
         }
     }
 
+    /**
+     * Function to check a string for validity
+     */
     private boolean isValid(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("\\d+");
     }
 
+    /**
+     * Function to check the number of players for validity
+     */
     private boolean isValidPlayers(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("[1-9]{1}\\d*");
     }
 
+    /**
+     * The function of checking the riddle word for validity
+     */
     private boolean isValidWord(String string) {
         return string != null && !string.trim().isEmpty() && string.matches("[а-яА-Я]{5,}");
     }
