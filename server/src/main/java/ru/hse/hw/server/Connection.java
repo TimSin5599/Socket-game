@@ -2,17 +2,46 @@ package ru.hse.hw.server;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ListIterator;
 
+/**
+ * The Connection class represents a connection to a client
+ */
 public class Connection extends Thread {
+    /**
+     * client socket
+     */
     private final Socket socket;
+    /**
+     * The reader is used to read data from the socket
+     */
     private final BufferedReader reader;
+    /**
+     * The writer is used to write data from the socket
+     */
     private final BufferedWriter writer;
+    /**
+     * player name
+     */
     private String playerName;
+    /**
+     * A personalised player counter that counts the number of letters guessed
+     */
     private int playerScore;
+    /**
+     * Session in which the player participates
+     */
     private Session session;
+    /**
+     * This field shows the current state of the letters in their places
+     */
     private int[] letterCondition;
 
+    /**
+     * Connection builder
+     * @param socket client socket
+     * @param session Session in which the player participates
+     * @throws IOException An IOException is thrown when a client socket is closed
+     */
     public Connection(Socket socket, Session session) throws IOException {
         this.socket = socket;
         this.session = session;
@@ -21,6 +50,9 @@ public class Connection extends Thread {
         playerScore = 0;
     }
 
+    /**
+     * The {@code run()} method is used when running the game and is used to check the letters for position
+     */
     @Override
     public void run() {
         String word = session.getWord();
@@ -64,6 +96,9 @@ public class Connection extends Thread {
         }
     }
 
+    /**
+     * The function for checking player's winnings
+     */
     private synchronized void checkWin() {
         String word = session.getWord();
         if (word.length() == playerScore) {
@@ -71,34 +106,59 @@ public class Connection extends Thread {
         }
     }
 
+    /**
+     * @return reader
+     */
     BufferedReader getReader() {
         return reader;
     }
 
+    /**
+     * @return writer
+     */
     BufferedWriter getWriter() {
         return writer;
     }
 
+    /**
+     * This function is used to set player name
+     * @param playerName player name
+     */
     void setNamePlayer(String playerName) {
         this.playerName = playerName;
     }
 
+    /**
+     * The function is used to add a player's points by +1
+     */
     synchronized void incrementScore() {
         ++playerScore;
     }
 
+    /**
+     * @return player score
+     */
     synchronized int getPlayerScore() {
         return playerScore;
     }
 
+    /**
+     * @return player name
+     */
     String getNamePlayer() {
         return playerName;
     }
 
+    /**
+     * @return an array with the current state of the letters
+     */
     int[] getLetterCondition() {
         return letterCondition;
     }
 
+    /**
+     * The function is used when the game ends and closes the socket, reader and writer
+     */
     void close() {
         try {
             if (!socket.isClosed()) {
